@@ -1,0 +1,73 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return signedIn() && (
+        request.auth.token.admin == true
+        || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+      );
+    }
+
+    function isOwnUser(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function isApprovedOwner() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/owners/$(request.auth.uid))
+        && get(/databases/$(database)/documents/owners/$(request.auth.uid)).data.isActive == true;
+    }
+
+    function ownsGround(groundId) {
+      return signedIn()
+        && get(/databases/$(database)/documents/grounds/$(groundId)).data.ownerId == request.auth.uid;
+    }
+
+    match /users/{uid} {
+      allow read: if isOwnUser(uid) || isAdmin();
+      allow create: if isOwnUser(uid)
+        && request.resource.data.uid == uid
+        && request.resource.data.role in ['user', 'owner']
+        && request.resource.data.approvalStatus in ['none', 'pending'];
+      allow update: if isAdmin()
+        || (isOwnUser(uid)
+          && request.resource.data.role == resource.data.role
+          && (request.resource.data.approvalStatus == resource.data.approvalStatus
+            || (resource.data.approvalStatus == 'rejected'
+              && request.resource.data.approvalStatus == 'pending')));
+      allow delete: if false;
+    }
+
+    match /ownerApplications/{uid} {
+      allow read: if isOwnUser(uid) || isAdmin();
+      allow create: if isOwnUser(uid)
+        && request.resource.data.uid == uid
+        && request.resource.data.status == 'pending';
+      allow update: if isAdmin()
+        || (isOwnUser(uid)
+          && resource.data.status in ['pending', 'rejected']
+          && request.resource.data.status == 'pending');
+      allow delete: if false;
+    }
+
+    match /owners/{uid} {
+      allow read: if isOwnUser(uid) || isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /grounds/{groundId} {
+      allow read: if resource.data.isActive == true || isAdmin() || ownsGround(groundId);
+      allow create: if isApprovedOwner()
+        && request.resource.data.ownerId == request.auth.uid;
+      allow update: if isAdmin()
+        || (ownsGround(groundId)
+          && request.resource.data.ownerId == resource.data.ownerId);
+      allow delete: if isAdmin() || ownsGround(groundId);
+    }
+  }
+}

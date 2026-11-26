@@ -1,0 +1,30 @@
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "futsal-app-e8a7c",
+          "appId": "1:67809143232:android:33b2090f08027b5619c025",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "futsal-app-e8a7c",
+          "configurations": {
+            "android": "1:67809143232:android:33b2090f08027b5619c025",
+            "ios": "1:67809143232:ios:849f9490be55f17c19c025",
+            "web": "1:67809143232:web:35388cab1e971c9919c025",
+            "windows": "1:67809143232:web:a60f01297168019619c025"
+          }
+        }
+      }
+    }
+  }
+}

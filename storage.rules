@@ -1,0 +1,37 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return signedIn() && (
+        request.auth.token.admin == true
+        || firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin'
+      );
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/.*')
+        && request.resource.size < 5 * 1024 * 1024;
+    }
+
+    function isApprovedGroundOwner(groundId) {
+      return signedIn()
+        && firestore.get(/databases/(default)/documents/owners/$(request.auth.uid)).data.isActive == true
+        && firestore.get(/databases/(default)/documents/grounds/$(groundId)).data.ownerId == request.auth.uid;
+    }
+
+    match /owner-documents/{uid}/{fileName} {
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == uid);
+      allow write: if signedIn() && request.auth.uid == uid && isImage();
+    }
+
+    match /ground-images/{groundId}/{fileName} {
+      allow read: if true;
+      allow write: if isApprovedGroundOwner(groundId) && isImage();
+    }
+  }
+}
