@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_colors.dart';
 import '../../domain/ground.dart';
 
 class PricingRuleEditor extends StatefulWidget {
@@ -77,85 +78,91 @@ class _PricingRuleEditorState extends State<PricingRuleEditor> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(widget.title),
-              value: _enabled,
-              onChanged: (value) {
-                setState(() => _enabled = value);
-                _notify();
-              },
+    return Container(
+      decoration: BoxDecoration(
+        color: _enabled ? AppColors.surface : AppColors.surfaceBright,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.line),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(
+              widget.title,
+              style: const TextStyle(fontWeight: FontWeight.w700),
             ),
-            if (_enabled) ...[
-              if (widget.showTimeWindow)
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => _pickTime(isStart: true),
-                        icon: const Icon(Icons.schedule),
-                        label: Text('From ${_format(_start)}'),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => _pickTime(isStart: false),
-                        icon: const Icon(Icons.schedule),
-                        label: Text('To ${_format(_end)}'),
-                      ),
-                    ),
-                  ],
-                ),
-              const SizedBox(height: 8),
+            value: _enabled,
+            onChanged: (value) {
+              setState(() => _enabled = value);
+              _notify();
+            },
+          ),
+          if (_enabled) ...[
+            if (widget.showTimeWindow)
               Row(
                 children: [
                   Expanded(
-                    child: DropdownButtonFormField<SurchargeType>(
-                      initialValue: _type,
-                      decoration: const InputDecoration(labelText: 'Type'),
-                      items: const [
-                        DropdownMenuItem(
-                          value: SurchargeType.percent,
-                          child: Text('Percent (%)'),
-                        ),
-                        DropdownMenuItem(
-                          value: SurchargeType.fixed,
-                          child: Text('Fixed amount'),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        if (value == null) return;
-                        setState(() => _type = value);
-                        _notify();
-                      },
+                    child: OutlinedButton.icon(
+                      onPressed: () => _pickTime(isStart: true),
+                      icon: const Icon(Icons.schedule, size: 18),
+                      label: Text('From ${_format(_start)}'),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
                   Expanded(
-                    child: TextField(
-                      controller: _amountController,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      decoration: InputDecoration(
-                        labelText: _type == SurchargeType.percent
-                            ? 'Extra percent'
-                            : 'Extra amount',
-                      ),
+                    child: OutlinedButton.icon(
+                      onPressed: () => _pickTime(isStart: false),
+                      icon: const Icon(Icons.schedule, size: 18),
+                      label: Text('To ${_format(_end)}'),
                     ),
                   ),
                 ],
               ),
-            ],
+            if (widget.showTimeWindow) const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<SurchargeType>(
+                    initialValue: _type,
+                    decoration: const InputDecoration(labelText: 'Type'),
+                    items: const [
+                      DropdownMenuItem(
+                        value: SurchargeType.percent,
+                        child: Text('Percent (%)'),
+                      ),
+                      DropdownMenuItem(
+                        value: SurchargeType.fixed,
+                        child: Text('Fixed amount'),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      if (value == null) return;
+                      setState(() => _type = value);
+                      _notify();
+                    },
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextField(
+                    controller: _amountController,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    decoration: InputDecoration(
+                      labelText: _type == SurchargeType.percent
+                          ? 'Extra percent'
+                          : 'Extra amount',
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ],
-        ),
+        ],
       ),
     );
   }

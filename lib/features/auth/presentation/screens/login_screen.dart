@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/validators.dart';
+import '../../../../shared/widgets/app_brand_banner.dart';
+import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_text_field.dart';
 import '../../providers/auth_providers.dart';
 
@@ -47,52 +50,69 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign in')),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text(
-                  'Futsal',
-                  style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                const Text('Sign in to continue'),
-                const SizedBox(height: 32),
-                AppTextField(
-                  controller: _emailController,
-                  label: 'Email',
-                  keyboardType: TextInputType.emailAddress,
-                  validator: Validators.email,
-                ),
-                AppTextField(
-                  controller: _passwordController,
-                  label: 'Password',
-                  obscureText: true,
-                  validator: Validators.password,
-                ),
-                const SizedBox(height: 8),
-                FilledButton(
-                  onPressed: _loading ? null : _submit,
-                  child: _loading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('Sign in'),
-                ),
-                TextButton(
-                  onPressed: () => context.go('/register'),
-                  child: const Text('Create an account'),
-                ),
-              ],
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const AppBrandBanner(
+              title: 'Futsal',
+              subtitle: 'Your next match starts here',
             ),
-          ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'Welcome back',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Sign in to continue',
+                          style: TextStyle(color: AppColors.textSecondary),
+                        ),
+                        const SizedBox(height: 24),
+                        AppTextField(
+                          controller: _emailController,
+                          label: 'Email',
+                          prefixIcon: Icons.alternate_email,
+                          keyboardType: TextInputType.emailAddress,
+                          validator: Validators.email,
+                        ),
+                        AppTextField(
+                          controller: _passwordController,
+                          label: 'Password',
+                          prefixIcon: Icons.lock_outline,
+                          obscureText: true,
+                          validator: Validators.password,
+                        ),
+                        const SizedBox(height: 8),
+                        AppButton(
+                          label: 'Sign in',
+                          icon: Icons.login,
+                          loading: _loading,
+                          onPressed: _submit,
+                        ),
+                        const SizedBox(height: 12),
+                        AppButton(
+                          label: 'Create an account',
+                          icon: Icons.person_add_outlined,
+                          variant: AppButtonVariant.outlined,
+                          onPressed: () => context.go('/register'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

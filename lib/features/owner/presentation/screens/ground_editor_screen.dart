@@ -5,6 +5,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/utils/validators.dart';
+import '../../../../shared/widgets/app_button.dart';
+import '../../../../shared/widgets/app_section.dart';
 import '../../../../shared/widgets/app_text_field.dart';
 import '../../../../shared/widgets/image_picker_field.dart';
 import '../../../../shared/widgets/location_fields.dart';
@@ -166,120 +168,157 @@ class _GroundEditorScreenState extends ConsumerState<GroundEditorScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                AppTextField(
-                  controller: _nameController,
-                  label: 'Ground name',
-                  validator: (value) => Validators.required(value, 'Ground name'),
-                ),
-                AppTextField(
-                  controller: _addressController,
-                  label: 'Address',
-                  maxLines: 2,
-                  validator: (value) => Validators.required(value, 'Address'),
-                ),
-                AppTextField(
-                  controller: _descriptionController,
-                  label: 'Description',
-                  maxLines: 3,
-                ),
-                AppTextField(
-                  controller: _amenitiesController,
-                  label: 'Amenities (comma separated)',
-                  hint: 'Parking, Changing room, AC',
-                ),
-                LocationFields(
-                  latitudeController: _latitudeController,
-                  longitudeController: _longitudeController,
-                ),
-                AppTextField(
-                  controller: _basePriceController,
-                  label: 'Base price per slot',
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  validator: (value) => Validators.positiveNumber(value, 'Price'),
-                ),
-                const SizedBox(height: 8),
-                const Text('Playing slots',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                Row(
+                AppSection(
+                  title: 'Ground details',
+                  icon: Icons.storefront_outlined,
                   children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => _pickTime(isOpen: true),
-                        icon: const Icon(Icons.login),
-                        label: Text('Open ${_format(_open)}'),
-                      ),
+                    AppTextField(
+                      controller: _nameController,
+                      label: 'Ground name',
+                      prefixIcon: Icons.sports_soccer,
+                      validator: (value) => Validators.required(value, 'Ground name'),
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => _pickTime(isOpen: false),
-                        icon: const Icon(Icons.logout),
-                        label: Text('Close ${_format(_close)}'),
-                      ),
+                    AppTextField(
+                      controller: _addressController,
+                      label: 'Address',
+                      prefixIcon: Icons.location_city_outlined,
+                      maxLines: 2,
+                      validator: (value) => Validators.required(value, 'Address'),
+                    ),
+                    AppTextField(
+                      controller: _descriptionController,
+                      label: 'Description',
+                      prefixIcon: Icons.notes_outlined,
+                      maxLines: 3,
+                    ),
+                    AppTextField(
+                      controller: _amenitiesController,
+                      label: 'Amenities',
+                      hint: 'Parking, Changing room, AC',
+                      prefixIcon: Icons.ac_unit_outlined,
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                DropdownButtonFormField<int>(
-                  initialValue: _durationMinutes,
-                  decoration: const InputDecoration(labelText: 'Slot duration'),
-                  items: const [
-                    DropdownMenuItem(value: 30, child: Text('30 minutes')),
-                    DropdownMenuItem(value: 45, child: Text('45 minutes')),
-                    DropdownMenuItem(value: 60, child: Text('60 minutes')),
-                    DropdownMenuItem(value: 90, child: Text('90 minutes')),
+                const SizedBox(height: 16),
+                AppSection(
+                  title: 'Location',
+                  icon: Icons.pin_drop_outlined,
+                  subtitle: 'Helps players find your ground',
+                  children: [
+                    LocationFields(
+                      latitudeController: _latitudeController,
+                      longitudeController: _longitudeController,
+                    ),
                   ],
-                  onChanged: (value) {
-                    if (value != null) setState(() => _durationMinutes = value);
-                  },
                 ),
                 const SizedBox(height: 16),
-                const Text('Price rules',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                PricingRuleEditor(
-                  title: 'Morning surcharge',
-                  initial: _morning,
-                  showTimeWindow: true,
-                  onChanged: (rule) => _morning = rule,
-                ),
-                PricingRuleEditor(
-                  title: 'Night surcharge',
-                  initial: _night,
-                  showTimeWindow: true,
-                  onChanged: (rule) => _night = rule,
-                ),
-                PricingRuleEditor(
-                  title: 'Saturday surcharge',
-                  initial: _saturday,
-                  showTimeWindow: false,
-                  onChanged: (rule) => _saturday = rule,
-                ),
-                ImagePickerField(
-                  maxImages: 5,
-                  initialUrls: widget.ground?.imageUrls ?? const [],
-                  onChanged: (files) => _newImages
-                    ..clear()
-                    ..addAll(files),
+                AppSection(
+                  title: 'Schedule & pricing',
+                  icon: Icons.schedule,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () => _pickTime(isOpen: true),
+                            icon: const Icon(Icons.login_outlined, size: 18),
+                            label: Text('Open ${_format(_open)}'),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () => _pickTime(isOpen: false),
+                            icon: const Icon(Icons.logout_outlined, size: 18),
+                            label: Text('Close ${_format(_close)}'),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<int>(
+                      initialValue: _durationMinutes,
+                      decoration: const InputDecoration(
+                        labelText: 'Slot duration',
+                        prefixIcon: Icon(Icons.timelapse_outlined, size: 20),
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: 30, child: Text('30 minutes')),
+                        DropdownMenuItem(value: 45, child: Text('45 minutes')),
+                        DropdownMenuItem(value: 60, child: Text('60 minutes')),
+                        DropdownMenuItem(value: 90, child: Text('90 minutes')),
+                      ],
+                      onChanged: (value) {
+                        if (value != null) setState(() => _durationMinutes = value);
+                      },
+                    ),
+                    const SizedBox(height: 14),
+                    AppTextField(
+                      controller: _basePriceController,
+                      label: 'Base price per slot',
+                      prefixIcon: Icons.attach_money,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      validator: (value) => Validators.positiveNumber(value, 'Price'),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
-                FilledButton(
-                  onPressed: isLoading ? null : _save,
-                  child: isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('Save ground'),
+                AppSection(
+                  title: 'Price rules',
+                  icon: Icons.tune,
+                  subtitle: 'Optional surcharges for peak times',
+                  children: [
+                    PricingRuleEditor(
+                      title: 'Morning surcharge',
+                      initial: _morning,
+                      showTimeWindow: true,
+                      onChanged: (rule) => _morning = rule,
+                    ),
+                    const SizedBox(height: 10),
+                    PricingRuleEditor(
+                      title: 'Night surcharge',
+                      initial: _night,
+                      showTimeWindow: true,
+                      onChanged: (rule) => _night = rule,
+                    ),
+                    const SizedBox(height: 10),
+                    PricingRuleEditor(
+                      title: 'Saturday surcharge',
+                      initial: _saturday,
+                      showTimeWindow: false,
+                      onChanged: (rule) => _saturday = rule,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                AppSection(
+                  title: 'Photos',
+                  icon: Icons.photo_library_outlined,
+                  subtitle: 'Add up to 5 photos of your ground',
+                  children: [
+                    ImagePickerField(
+                      maxImages: 5,
+                      initialUrls: widget.ground?.imageUrls ?? const [],
+                      onChanged: (files) => _newImages
+                        ..clear()
+                        ..addAll(files),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                AppButton(
+                  label: 'Save ground',
+                  icon: Icons.save_outlined,
+                  loading: isLoading,
+                  onPressed: _save,
                 ),
               ],
             ),

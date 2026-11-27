@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../shared/widgets/app_empty_state.dart';
 import '../../../../shared/widgets/async_state_view.dart';
 import '../../data/ground_repository.dart';
 import '../../domain/ground.dart';
@@ -20,7 +21,11 @@ class GroundEditorRoute extends ConsumerWidget {
         if (ground == null) {
           return Scaffold(
             appBar: AppBar(title: const Text('Ground not found')),
-            body: const Center(child: Text('This ground no longer exists.')),
+            body: const AppEmptyState(
+              icon: Icons.search_off,
+              title: 'Ground not found',
+              message: 'This ground no longer exists.',
+            ),
           );
         }
         return GroundEditorScreen(ground: ground);

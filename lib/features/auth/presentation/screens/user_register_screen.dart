@@ -2,13 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/validators.dart';
+import '../../../../shared/widgets/app_button.dart';
+import '../../../../shared/widgets/app_section.dart';
 import '../../../../shared/widgets/app_text_field.dart';
 import '../../../../shared/widgets/location_fields.dart';
 import '../../providers/auth_providers.dart';
 
 class UserRegisterScreen extends ConsumerStatefulWidget {
-  const UserRegisterScreen({super.key});
+  const UserRegisterScreen({super.key, this.embedded = false});
+
+  final bool embedded;
 
   @override
   ConsumerState<UserRegisterScreen> createState() => _UserRegisterScreenState();
@@ -56,55 +61,95 @@ class _UserRegisterScreenState extends ConsumerState<UserRegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final form = Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (widget.embedded)
+            const Padding(
+              padding: EdgeInsets.only(bottom: 16),
+              child: Text(
+                'Find and book grounds close to you.',
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
+            )
+          else ...[
+            Text(
+              'Create your player account',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Find and book grounds close to you.',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 20),
+          ],
+          AppSection(
+            title: 'Account details',
+            icon: Icons.person_outline,
+            children: [
+              AppTextField(
+                controller: _nameController,
+                label: 'Full name',
+                prefixIcon: Icons.badge_outlined,
+                validator: (value) => Validators.required(value, 'Name'),
+              ),
+              AppTextField(
+                controller: _emailController,
+                label: 'Email',
+                prefixIcon: Icons.alternate_email,
+                keyboardType: TextInputType.emailAddress,
+                validator: Validators.email,
+              ),
+              AppTextField(
+                controller: _passwordController,
+                label: 'Password',
+                prefixIcon: Icons.lock_outline,
+                obscureText: true,
+                validator: Validators.password,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          AppSection(
+            title: 'Your location',
+            icon: Icons.location_on_outlined,
+            subtitle: 'Used to show nearby grounds',
+            children: [
+              LocationFields(
+                latitudeController: _latitudeController,
+                longitudeController: _longitudeController,
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          AppButton(
+            label: 'Create account',
+            icon: Icons.check,
+            loading: _loading,
+            onPressed: _submit,
+          ),
+          if (!widget.embedded) ...[
+            const SizedBox(height: 12),
+            AppButton(
+              label: 'Back to sign in',
+              variant: AppButtonVariant.outlined,
+              onPressed: () => context.go('/login'),
+            ),
+          ],
+        ],
+      ),
+    );
+
+    if (widget.embedded) return form;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Player registration')),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                AppTextField(
-                  controller: _nameController,
-                  label: 'Full name',
-                  validator: (value) => Validators.required(value, 'Name'),
-                ),
-                AppTextField(
-                  controller: _emailController,
-                  label: 'Email',
-                  keyboardType: TextInputType.emailAddress,
-                  validator: Validators.email,
-                ),
-                AppTextField(
-                  controller: _passwordController,
-                  label: 'Password',
-                  obscureText: true,
-                  validator: Validators.password,
-                ),
-                LocationFields(
-                  latitudeController: _latitudeController,
-                  longitudeController: _longitudeController,
-                ),
-                const SizedBox(height: 8),
-                FilledButton(
-                  onPressed: _loading ? null : _submit,
-                  child: _loading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('Create account'),
-                ),
-                TextButton(
-                  onPressed: () => context.go('/login'),
-                  child: const Text('Back to sign in'),
-                ),
-              ],
-            ),
-          ),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+          child: form,
         ),
       ),
     );

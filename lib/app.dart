@@ -8,13 +8,11 @@ import 'features/admin/presentation/screens/pending_owners_screen.dart';
 import 'features/auth/domain/app_user.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
 import 'features/auth/presentation/screens/register_screen.dart';
-import 'features/auth/presentation/screens/user_register_screen.dart';
 import 'features/auth/providers/auth_providers.dart';
 import 'features/owner/presentation/screens/ground_editor_route.dart';
 import 'features/owner/presentation/screens/ground_editor_screen.dart';
 import 'features/owner/presentation/screens/owner_dashboard_screen.dart';
 import 'features/owner/presentation/screens/owner_pending_screen.dart';
-import 'features/owner/presentation/screens/owner_registration_screen.dart';
 import 'features/user/presentation/screens/user_home_screen.dart';
 
 class FutsalApp extends ConsumerWidget {
@@ -34,11 +32,11 @@ class FutsalApp extends ConsumerWidget {
         GoRoute(path: '/register', builder: (_, _) => const RegisterScreen()),
         GoRoute(
           path: '/register/owner',
-          builder: (_, _) => const OwnerRegistrationScreen(),
+          builder: (_, _) => const RegisterScreen(initialTab: 1),
         ),
         GoRoute(
           path: '/register/user',
-          builder: (_, _) => const UserRegisterScreen(),
+          builder: (_, _) => const RegisterScreen(initialTab: 0),
         ),
         GoRoute(path: '/pending', builder: (_, _) => const OwnerPendingScreen()),
         GoRoute(

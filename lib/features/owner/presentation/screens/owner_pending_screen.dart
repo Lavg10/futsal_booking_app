@@ -3,7 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/validators.dart';
+import '../../../../shared/widgets/app_button.dart';
+import '../../../../shared/widgets/app_empty_state.dart';
+import '../../../../shared/widgets/app_section.dart';
 import '../../../../shared/widgets/app_text_field.dart';
 import '../../../../shared/widgets/async_state_view.dart';
 import '../../../../shared/widgets/image_picker_field.dart';
@@ -112,7 +116,7 @@ class _OwnerPendingScreenState extends ConsumerState<OwnerPendingScreen> {
         actions: [
           IconButton(
             onPressed: () => ref.read(authRepositoryProvider).signOut(),
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout_outlined),
             tooltip: 'Sign out',
           ),
         ],
@@ -121,8 +125,10 @@ class _OwnerPendingScreenState extends ConsumerState<OwnerPendingScreen> {
         value: applicationAsync,
         builder: (application) {
           if (application == null) {
-            return const Center(
-              child: Text('No application found. Please register again.'),
+            return const AppEmptyState(
+              icon: Icons.description_outlined,
+              title: 'No application found',
+              message: 'Please register again to continue.',
             );
           }
           _prefill(application);
@@ -132,135 +138,198 @@ class _OwnerPendingScreenState extends ConsumerState<OwnerPendingScreen> {
                   application.documents.venueProofUrl.isEmpty);
           final canResubmit = application.isRejected || needsDocuments;
 
+          final statusColor = application.isApproved
+              ? AppColors.success
+              : application.isRejected
+                  ? AppColors.danger
+                  : AppColors.warning;
+          final statusTint = application.isApproved
+              ? AppColors.successTint
+              : application.isRejected
+                  ? AppColors.dangerTint
+                  : AppColors.warningTint;
+          final statusIcon = application.isApproved
+              ? Icons.check_circle_outline
+              : application.isRejected
+                  ? Icons.cancel_outlined
+                  : Icons.hourglass_top_rounded;
+          final statusLabel = application.isApproved
+              ? 'Approved'
+              : application.isRejected
+                  ? 'Rejected'
+                  : 'Pending review';
+          final title = application.isApproved
+              ? 'Your account is approved'
+              : application.isRejected
+                  ? 'Application rejected'
+                  : 'Waiting for admin approval';
+          final message = application.isApproved
+              ? 'You can now add your futsal grounds.'
+              : needsDocuments
+                  ? 'Account created. Upload your documents to continue.'
+                  : application.isRejected
+                      ? 'Reason: ${application.rejectionReason ?? 'Not provided'}'
+                      : 'Admin is reviewing your details and documents.';
+
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Icon(
-                  application.isApproved
-                      ? Icons.check_circle
-                      : application.isRejected
-                          ? Icons.cancel
-                          : Icons.hourglass_top,
-                  size: 64,
-                  color: application.isApproved
-                      ? Colors.green
-                      : application.isRejected
-                          ? Colors.red
-                          : Colors.orange,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  application.isApproved
-                      ? 'Your account is approved'
-                      : application.isRejected
-                          ? 'Application rejected'
-                          : 'Waiting for admin approval',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: statusTint,
+                    borderRadius: BorderRadius.circular(22),
+                  ),
+                  child: Column(
+                    children: [
+                      Container(
+                        height: 72,
+                        width: 72,
+                        decoration: BoxDecoration(
+                          color: statusColor,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(statusIcon, size: 38, color: AppColors.surfaceBright),
+                      ),
+                      const SizedBox(height: 18),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceBright,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          statusLabel,
+                          style: TextStyle(
+                            color: statusColor,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        title,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        message,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: AppColors.textSecondary),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  application.isApproved
-                      ? 'You can now add your futsal grounds.'
-                      : needsDocuments
-                          ? 'Account created. Upload your documents to continue.'
-                          : application.isRejected
-                              ? 'Reason: ${application.rejectionReason ?? 'Not provided'}'
-                              : 'Admin is reviewing your details and documents.',
-                  textAlign: TextAlign.center,
-                ),
-                if (application.isApproved)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 24),
-                    child: FilledButton(
-                      onPressed: () => context.go('/owner'),
-                      child: const Text('Go to owner dashboard'),
-                    ),
+                if (application.isApproved) ...[
+                  const SizedBox(height: 20),
+                  AppButton(
+                    label: 'Go to owner dashboard',
+                    icon: Icons.dashboard_outlined,
+                    onPressed: () => context.go('/owner'),
                   ),
-                if (canResubmit)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 24),
-                    child: FilledButton(
-                      onPressed: () =>
-                          setState(() => _showResubmitForm = !_showResubmitForm),
-                      child: Text(_showResubmitForm
-                          ? 'Cancel'
-                          : needsDocuments
-                              ? 'Upload documents'
-                              : 'Update and resubmit'),
-                    ),
+                ],
+                if (canResubmit) ...[
+                  const SizedBox(height: 20),
+                  AppButton(
+                    label: _showResubmitForm
+                        ? 'Cancel'
+                        : needsDocuments
+                            ? 'Upload documents'
+                            : 'Update and resubmit',
+                    icon: _showResubmitForm ? Icons.close : Icons.edit_outlined,
+                    variant: _showResubmitForm
+                        ? AppButtonVariant.outlined
+                        : AppButtonVariant.filled,
+                    onPressed: () =>
+                        setState(() => _showResubmitForm = !_showResubmitForm),
                   ),
-                if (_showResubmitForm && canResubmit)
+                ],
+                if (_showResubmitForm && canResubmit) ...[
+                  const SizedBox(height: 20),
                   Form(
                     key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                    child: AppSection(
+                      title: 'Update application',
+                      icon: Icons.edit_document,
                       children: [
-                        const SizedBox(height: 24),
                         AppTextField(
                           controller: _ownerNameController,
                           label: 'Owner name',
+                          prefixIcon: Icons.badge_outlined,
                           validator: (value) =>
                               Validators.required(value, 'Owner name'),
                         ),
                         AppTextField(
                           controller: _phoneController,
                           label: 'Phone number',
+                          prefixIcon: Icons.phone_outlined,
                           validator: (value) =>
                               Validators.required(value, 'Phone number'),
                         ),
                         AppTextField(
                           controller: _businessNameController,
                           label: 'Business name',
+                          prefixIcon: Icons.storefront_outlined,
                           validator: (value) =>
                               Validators.required(value, 'Business name'),
                         ),
                         AppTextField(
                           controller: _registrationNumberController,
                           label: 'Registration number',
+                          prefixIcon: Icons.confirmation_number_outlined,
                           validator: (value) =>
                               Validators.required(value, 'Registration number'),
                         ),
                         AppTextField(
                           controller: _addressController,
                           label: 'Address',
+                          prefixIcon: Icons.home_outlined,
                           maxLines: 2,
                           validator: (value) => Validators.required(value, 'Address'),
                         ),
+                        const SizedBox(height: 4),
                         LocationFields(
                           latitudeController: _latitudeController,
                           longitudeController: _longitudeController,
                         ),
+                        const SizedBox(height: 12),
                         ImagePickerField(
                           label: 'Identity proof',
                           maxImages: 1,
                           onChanged: (files) =>
                               _idProof = files.isEmpty ? null : files.first,
                         ),
+                        const SizedBox(height: 12),
                         ImagePickerField(
                           label: 'Business registration document',
                           maxImages: 1,
                           onChanged: (files) => _businessRegistration =
                               files.isEmpty ? null : files.first,
                         ),
+                        const SizedBox(height: 12),
                         ImagePickerField(
                           label: 'Venue proof',
                           maxImages: 1,
                           onChanged: (files) =>
                               _venueProof = files.isEmpty ? null : files.first,
                         ),
-                        FilledButton(
+                        const SizedBox(height: 20),
+                        AppButton(
+                          label: 'Resubmit application',
+                          icon: Icons.send_outlined,
                           onPressed: _resubmit,
-                          child: const Text('Resubmit application'),
                         ),
                       ],
                     ),
                   ),
+                ],
               ],
             ),
           );

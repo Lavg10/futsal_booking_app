@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../core/theme/app_colors.dart';
+
 class ImagePickerField extends StatefulWidget {
   const ImagePickerField({
     super.key,
@@ -47,37 +49,81 @@ class _ImagePickerFieldState extends State<ImagePickerField> {
     final total = widget.initialUrls.length + _files.length;
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Row(
           children: [
-            Text(widget.label, style: const TextStyle(fontWeight: FontWeight.w600)),
-            const Spacer(),
+            Expanded(
+              child: Text(
+                widget.label,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+            ),
             TextButton.icon(
               onPressed: total >= widget.maxImages ? null : _pickImages,
-              icon: const Icon(Icons.add_photo_alternate),
+              icon: const Icon(Icons.add_photo_alternate_outlined),
               label: Text('Add ($total/${widget.maxImages})'),
             ),
           ],
         ),
-        SizedBox(
-          height: 100,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: [
-              for (var i = 0; i < widget.initialUrls.length; i++)
-                _preview(
-                  image: Image.network(widget.initialUrls[i], fit: BoxFit.cover),
-                  onRemove: null,
+        const SizedBox(height: 8),
+        if (total == 0)
+          Container(
+            height: 112,
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.line),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                Icon(
+                  Icons.image_outlined,
+                  size: 30,
+                  color: AppColors.primary,
                 ),
-              for (var i = 0; i < _files.length; i++)
-                _preview(
-                  image: Image.file(File(_files[i].path), fit: BoxFit.cover),
-                  onRemove: () => _removeFile(i),
+                SizedBox(height: 8),
+                Text(
+                  'Add photos to make your listing stand out',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 13,
+                  ),
                 ),
-            ],
+              ],
+            ),
+          )
+        else
+          SizedBox(
+            height: 112,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: total,
+              separatorBuilder: (_, _) => const SizedBox(width: 10),
+              itemBuilder: (context, index) {
+                if (index < widget.initialUrls.length) {
+                  return _preview(
+                    image: Image.network(
+                      widget.initialUrls[index],
+                      fit: BoxFit.cover,
+                    ),
+                    onRemove: null,
+                  );
+                }
+                final fileIndex = index - widget.initialUrls.length;
+                return _preview(
+                  image: Image.file(
+                    File(_files[fileIndex].path),
+                    fit: BoxFit.cover,
+                  ),
+                  onRemove: () => _removeFile(fileIndex),
+                );
+              },
+            ),
           ),
-        ),
       ],
     );
   }
@@ -86,23 +132,29 @@ class _ImagePickerFieldState extends State<ImagePickerField> {
     return Stack(
       children: [
         Container(
-          width: 100,
-          height: 100,
-          margin: const EdgeInsets.only(right: 8),
+          height: 112,
+          width: 112,
           clipBehavior: Clip.antiAlias,
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.line),
+          ),
           child: image,
         ),
         if (onRemove != null)
           Positioned(
-            top: 2,
-            right: 10,
+            top: 6,
+            right: 6,
             child: CircleAvatar(
               radius: 14,
-              backgroundColor: Colors.black54,
+              backgroundColor: AppColors.dark,
               child: IconButton(
                 padding: EdgeInsets.zero,
-                icon: const Icon(Icons.close, size: 16, color: Colors.white),
+                icon: const Icon(
+                  Icons.close,
+                  size: 15,
+                  color: AppColors.surfaceBright,
+                ),
                 onPressed: onRemove,
               ),
             ),
